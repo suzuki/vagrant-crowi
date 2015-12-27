@@ -1,0 +1,29 @@
+# Crowi installer for Vagrant
+- hosts: all
+  remote_user: vagrant
+  vars:
+    nvm_version: v0.29.0
+    node_version: v0.10.41
+    repo_dir: /vagrant/crowi
+    branch: master
+  tasks:
+    - name: apt-get update
+      sudo: yes
+      apt: update_cache=yes
+    - name: install packages
+      sudo: yes
+      apt: name={{ item }} install_recommends=no
+      with_items:
+        - curl
+        - g++
+        - git
+        - mongodb
+    - name: setup nvm using 'raw' module. this is dangerous !!
+      raw: /usr/bin/curl -o- https://raw.githubusercontent.com/creationix/nvm/{{ nvm_version }}/install.sh | bash
+    - name: install nodejs
+      raw: . ~/.nvm/nvm.sh && nvm install {{ node_version }} && nvm alias default {{ node_version }}
+    - git: repo=ssh://git@github.com/crowi/crowi.git
+           dest={{ repo_dir }}
+           version={{ branch }}
+           accept_hostkey=yes
+    - raw: . ~/.nvm/nvm.sh && cd {{ repo_dir }} && export CI=true && npm install
