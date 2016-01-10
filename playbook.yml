@@ -7,6 +7,12 @@
     repo_dir: /vagrant/crowi
     branch: master
   tasks:
+    - name: Add Elastic apt-key
+      sudo: yes
+      apt_key: url=https://packages.elastic.co/GPG-KEY-elasticsearch state=present
+    - name: Add Elasticsearch apt repo
+      sudo: yes
+      apt_repository: repo='deb http://packages.elastic.co/elasticsearch/2.x/debian stable main' state=present
     - name: apt-get update
       sudo: yes
       apt: update_cache=yes
@@ -15,9 +21,14 @@
       apt: name={{ item }} install_recommends=no
       with_items:
         - curl
+        - elasticsearch
         - g++
         - git
         - mongodb
+        - openjdk-7-jdk
+    - name: start Elasticsearch
+      sudo: yes
+      service: name=elasticsearch state=restarted enabled=yes
     - name: setup nvm using 'raw' module. this is dangerous !!
       raw: /usr/bin/curl -o- https://raw.githubusercontent.com/creationix/nvm/{{ nvm_version }}/install.sh | bash
     - name: install nodejs
