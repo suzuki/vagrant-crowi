@@ -29,6 +29,20 @@
     - name: start Elasticsearch
       sudo: yes
       service: name=elasticsearch state=restarted enabled=yes
+    - name: Is analysis-kuromoji plugin exists?
+      sudo: yes
+      stat: path=/usr/share/elasticsearch/plugins/analysis-kuromoji
+      register: kuromoji_dir
+    - name: Install analysis-kuromoji plugin
+      when: not kuromoji_dir.stat.exists
+      sudo: yes
+      #raw: /usr/share/elasticsearch/bin/plugin install analysis-kuromoji
+      command: /usr/share/elasticsearch/bin/plugin install analysis-kuromoji
+      register: result
+    - name: Restart Elasticsearch
+      when: not result|skipped
+      sudo: yes
+      service: name=elasticsearch state=restarted
     - name: setup nvm using 'raw' module. this is dangerous !!
       raw: /usr/bin/curl -o- https://raw.githubusercontent.com/creationix/nvm/{{ nvm_version }}/install.sh | bash
     - name: install nodejs
